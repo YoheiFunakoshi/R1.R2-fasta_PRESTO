@@ -353,7 +353,14 @@ def main() -> int:
     run_dir = base_outdir / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    assemble_prefix = args.assemble_prefix or f"{run_name}_presto"
+    assemble_prefix_arg = args.assemble_prefix or f"{run_name}_presto"
+    assemble_prefix_path = Path(assemble_prefix_arg)
+    if assemble_prefix_path.is_absolute():
+        assemble_outname = assemble_prefix_path
+    else:
+        assemble_outname = run_dir / assemble_prefix_arg
+    assemble_outname.parent.mkdir(parents=True, exist_ok=True)
+
     if args.log:
         log_path = Path(args.log)
         if not log_path.is_absolute():
@@ -394,7 +401,7 @@ def main() -> int:
     run_assemblepairs(
         r1=assemble_r1,
         r2=assemble_r2,
-        outname=assemble_prefix,
+        outname=str(assemble_outname),
         coord=args.coord,
         rc=args.rc,
         log_path=log_path,
@@ -403,7 +410,7 @@ def main() -> int:
         outdir=run_dir,
     )
 
-    assemble_pass = run_dir / f"{assemble_prefix}_assemble-pass.fastq"
+    assemble_pass = assemble_outname.parent / f"{assemble_outname.name}_assemble-pass.fastq"
     if not args.dry_run and not assemble_pass.exists():
         print(f"AssemblePairs output not found: {assemble_pass}", file=sys.stderr)
         return 3

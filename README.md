@@ -96,6 +96,7 @@ C:\path\KKF340_mergeThenTrim_20260110_154200\
 ```
 
 モードにより以下のいずれかが作成されます（ファイル名にモード名と日時が入ります）。
+すべて同一の実行フォルダ内に出力されます。
 
 - `*_<mode>_<timestamp>_presto_assemble-pass.fastq`（AssemblePairsのマージ結果）
 - `*_<mode>_<timestamp>_presto_assemble-pass.fasta`（FASTA変換）
