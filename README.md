@@ -85,23 +85,23 @@ C:\miniforge3\Scripts\conda.exe run -p C:\miniforge3\envs\presto_env ^
 
 ## 出力ファイルとフォルダ
 
-出力は `Output base folder` の下に、モード名付きのサブフォルダとして作成されます。
+出力は `Output base folder` の下に、モード名と日時付きのサブフォルダとして作成されます。
 
 例:
 
 ```
-C:\path\KKF340_withoutTrim\
-C:\path\KKF340_trimThenMerge\
-C:\path\KKF340_mergeThenTrim\
+C:\path\KKF340_withoutTrim_20260110_153000\
+C:\path\KKF340_trimThenMerge_20260110_153500\
+C:\path\KKF340_mergeThenTrim_20260110_154200\
 ```
 
-モードにより以下のいずれかが作成されます（ファイル名にモード名が入ります）。
+モードにより以下のいずれかが作成されます（ファイル名にモード名と日時が入ります）。
 
-- `*_<mode>_presto_assemble-pass.fastq`（AssemblePairsのマージ結果）
-- `*_<mode>_presto_assemble-pass.fasta`（FASTA変換）
-- `*_<mode>_AP_align.log`（AssemblePairsログ）
-- `*_<mode>_trim_R1.fastq`, `*_<mode>_trim_R2.fastq`（trim-merge時）
-- `*_<mode>.fastq`, `*_<mode>.fasta`（merge-trim時の最終出力）
+- `*_<mode>_<timestamp>_presto_assemble-pass.fastq`（AssemblePairsのマージ結果）
+- `*_<mode>_<timestamp>_presto_assemble-pass.fasta`（FASTA変換）
+- `*_<mode>_<timestamp>_AP_align.log`（AssemblePairsログ）
+- `*_<mode>_<timestamp>_trim_R1.fastq`, `*_<mode>_<timestamp>_trim_R2.fastq`（trim-merge時）
+- `*_<mode>_<timestamp>.fastq`, `*_<mode>_<timestamp>.fasta`（merge-trim時の最終出力）
 
 ## 固定配列（デフォルト）
 

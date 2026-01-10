@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import os
 from pathlib import Path
 import queue
@@ -159,6 +160,8 @@ class App(tk.Tk):
         self.queue: "queue.Queue[tuple[str, str | int]]" = queue.Queue()
         self.worker_thread: threading.Thread | None = None
         self.running = False
+        self._last_run_dir: Path | None = None
+        self._last_run_id: str | None = None
 
         self.var_r1 = tk.StringVar()
         self.var_r2 = tk.StringVar()
@@ -399,7 +402,10 @@ class App(tk.Tk):
             return infer_prefix(Path(r1))
         return "sample"
 
-    def _current_run_dir(self) -> Path:
+    def _build_run_id(self) -> str:
+        return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    def _run_dir_for(self, run_id: str) -> Path:
         r1 = self.var_r1.get().strip()
         outdir = self.var_outdir.get().strip()
         if outdir:
@@ -408,14 +414,14 @@ class App(tk.Tk):
             base = Path(r1).parent
         else:
             base = Path.cwd()
-        run_name = f"{self._current_prefix_base()}_{mode_label(self.var_mode.get())}"
+        run_name = f"{self._current_prefix_base()}_{mode_label(self.var_mode.get())}_{run_id}"
         return base / run_name
 
     def _append_log(self, text: str) -> None:
         self.log_text.insert("end", text)
         self.log_text.see("end")
 
-    def _build_command(self) -> list[str]:
+    def _build_command(self, run_id: str) -> list[str]:
         script_dir = Path(__file__).resolve().parent
         cli_path = script_dir / "bcr_merge_cli.py"
         if not cli_path.exists():
@@ -452,6 +458,8 @@ class App(tk.Tk):
             self.var_adapt_3p_r1.get().strip(),
             "--adapter-3p-r2",
             self.var_adapt_3p_r2.get().strip(),
+            "--run-id",
+            run_id,
         ]
 
         prefix = self.var_prefix.get().strip()
@@ -507,8 +515,12 @@ class App(tk.Tk):
             messagebox.showerror("Error", "R2 FASTQ not found.")
             return
 
+        run_id = self._build_run_id()
+        self._last_run_id = run_id
+        run_dir = self._run_dir_for(run_id)
+        self._last_run_dir = run_dir
         try:
-            cmd = self._build_command()
+            cmd = self._build_command(run_id)
         except Exception as exc:
             messagebox.showerror("Error", str(exc))
             return
@@ -517,7 +529,7 @@ class App(tk.Tk):
         self.run_btn.configure(state="disabled")
         self.status_var.set("Running...")
         self._append_log("\n>> " + subprocess.list2cmdline(cmd) + "\n")
-        self._append_log(f">> output folder: {self._current_run_dir()}\n")
+        self._append_log(f">> output folder: {run_dir}\n")
 
         def worker() -> None:
             try:
@@ -558,9 +570,8 @@ class App(tk.Tk):
         self.after(100, self._poll_queue)
 
     def _open_outdir(self) -> None:
-        run_dir = self._current_run_dir()
-        if run_dir.exists():
-            os.startfile(run_dir)
+        if self._last_run_dir and self._last_run_dir.exists():
+            os.startfile(self._last_run_dir)
             return
         base = self.var_outdir.get().strip()
         if not base:

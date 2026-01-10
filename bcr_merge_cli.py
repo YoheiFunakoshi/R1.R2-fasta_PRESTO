@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import gzip
 import os
 from pathlib import Path
@@ -49,6 +50,11 @@ def parse_args() -> argparse.Namespace:
         "--assemble-prefix",
         default=None,
         help="Prefix passed to AssemblePairs --outname. Defaults to <prefix>_presto.",
+    )
+    parser.add_argument(
+        "--run-id",
+        default=None,
+        help="Optional run identifier used for output folder naming (default: timestamp).",
     )
     parser.add_argument(
         "--log",
@@ -138,6 +144,12 @@ def infer_prefix(r1_path: Path) -> str:
 
 def mode_label(mode: str) -> str:
     return MODE_LABELS.get(mode, mode)
+
+
+def validate_run_id(run_id: str) -> None:
+    invalid = '<>:"/\\|?*'
+    if any(ch in invalid for ch in run_id):
+        raise ValueError(f"--run-id contains invalid characters: {invalid}")
 
 
 def ensure_prefix(seq: str, prefix: str) -> str:
@@ -335,7 +347,9 @@ def main() -> int:
     base_outdir.mkdir(parents=True, exist_ok=True)
 
     prefix_base = args.prefix or infer_prefix(r1)
-    run_name = f"{prefix_base}_{mode_label(args.mode)}"
+    run_id = args.run_id.strip() if args.run_id else datetime.now().strftime("%Y%m%d_%H%M%S")
+    validate_run_id(run_id)
+    run_name = f"{prefix_base}_{mode_label(args.mode)}_{run_id}"
     run_dir = base_outdir / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
 
