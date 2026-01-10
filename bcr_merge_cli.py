@@ -121,6 +121,11 @@ def parse_args() -> argparse.Namespace:
         help="Emit assemble-fail FASTQ files.",
     )
     parser.add_argument(
+        "--swap-r1r2",
+        action="store_true",
+        help="Swap R1/R2 for AssemblePairs (-1 R1, -2 R2).",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Print commands without executing them.",
@@ -150,6 +155,11 @@ def validate_run_id(run_id: str) -> None:
     invalid = '<>:"/\\|?*'
     if any(ch in invalid for ch in run_id):
         raise ValueError(f"--run-id contains invalid characters: {invalid}")
+
+
+def sanitize_adapter(seq: str) -> str:
+    seq = seq.strip()
+    return seq.replace("^", "").replace("$", "")
 
 
 def ensure_prefix(seq: str, prefix: str) -> str:
@@ -219,6 +229,7 @@ def fastq_to_fasta(in_path: Path, out_path: Path) -> None:
                 header = header.strip()
                 if header.startswith("@"):
                     header = header[1:]
+                header = header.split()[0]
                 fout.write(f">{header}\n")
                 fout.write(seq.strip() + "\n")
 
@@ -306,18 +317,21 @@ def run_assemblepairs(
     rc: str,
     log_path: Path,
     failed: bool,
+    swap_r1r2: bool,
     dry_run: bool,
     outdir: Path,
 ) -> None:
     assemble_path = resolve_assemblepairs_path()
+    first = r1 if swap_r1r2 else r2
+    second = r2 if swap_r1r2 else r1
     cmd = [
         sys.executable,
         str(assemble_path),
         "align",
         "-1",
-        str(r2),
+        str(first),
         "-2",
-        str(r1),
+        str(second),
         "--coord",
         coord,
         "--rc",
@@ -369,10 +383,10 @@ def main() -> int:
         log_path = run_dir / f"{run_name}_AP_align.log"
 
     adapters = {
-        "r1_5p": args.adapter_5p_r1,
-        "r2_5p": args.adapter_5p_r2,
-        "r1_3p": args.adapter_3p_r1,
-        "r2_3p": args.adapter_3p_r2,
+        "r1_5p": sanitize_adapter(args.adapter_5p_r1),
+        "r2_5p": sanitize_adapter(args.adapter_5p_r2),
+        "r1_3p": sanitize_adapter(args.adapter_3p_r1),
+        "r2_3p": sanitize_adapter(args.adapter_3p_r2),
     }
 
     trimmed_r1 = run_dir / f"{run_name}_trim_R1.fastq"
@@ -406,6 +420,7 @@ def main() -> int:
         rc=args.rc,
         log_path=log_path,
         failed=args.failed,
+        swap_r1r2=args.swap_r1r2,
         dry_run=args.dry_run,
         outdir=run_dir,
     )

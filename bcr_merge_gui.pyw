@@ -179,6 +179,7 @@ class App(tk.Tk):
         self.var_adapt_3p_r2 = tk.StringVar(value=DEFAULT_ADAPTER_3P_R2)
         self.var_failed = tk.BooleanVar(value=False)
         self.var_dry_run = tk.BooleanVar(value=False)
+        self.var_swap_r1r2 = tk.BooleanVar(value=False)
 
         default_use_conda = "presto_env" not in os.environ.get("CONDA_PREFIX", "")
         self.var_use_conda = tk.BooleanVar(value=default_use_conda)
@@ -318,6 +319,9 @@ class App(tk.Tk):
         ttk.Checkbutton(flags_frame, text="Dry run", variable=self.var_dry_run).grid(
             row=0, column=1, sticky="w", padx=5
         )
+        ttk.Checkbutton(
+            flags_frame, text="Swap R1/R2 for AssemblePairs", variable=self.var_swap_r1r2
+        ).grid(row=0, column=2, sticky="w", padx=5)
         row += 1
 
         btn_frame = ttk.Frame(frame)
@@ -474,6 +478,8 @@ class App(tk.Tk):
             cmd.append("--failed")
         if self.var_dry_run.get():
             cmd.append("--dry-run")
+        if self.var_swap_r1r2.get():
+            cmd.append("--swap-r1r2")
 
         if self.var_use_conda.get():
             conda_exe = self.var_conda_exe.get().strip()
