@@ -1,0 +1,28 @@
+__pycache__/
+*.pyc
+
+# FASTQ/FASTA and outputs
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.fasta
+*.fa
+*.log
+AP_align.log
+*_AP_align.log
+*_assemble-pass.fastq
+*_assemble-pass.fasta
+*_assemble-fail.fastq
+*_assemble-fail.fasta
+*_mergeThenTrim.fastq
+*_mergeThenTrim.fasta
+*_trim_R1.fastq
+*_trim_R2.fastq
+
+# GUI-generated icons
+bcr_merge_icon.png
+bcr_merge_icon.ico
+
+# Internal doc extractions
+_doc_extract*.txt
