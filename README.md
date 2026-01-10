@@ -41,7 +41,7 @@ cutadapt --version
 
 1. `bcr_merge_gui.pyw` をダブルクリックで起動
 2. R1/R2を選択
-3. Output folderを確認
+3. Output base folderを確認
 4. Modeを選択（初回は `merge-only` または `merge-trim` 推奨）
 5. `Run` を押す
 
@@ -83,15 +83,25 @@ C:\miniforge3\Scripts\conda.exe run -p C:\miniforge3\envs\presto_env ^
   python bcr_merge_cli.py --mode merge-only --r1 C:\path\R1.fastq --r2 C:\path\R2.fastq
 ```
 
-## 出力ファイル
+## 出力ファイルとフォルダ
 
-モードにより以下のいずれかが作成されます。
+出力は `Output base folder` の下に、モード名付きのサブフォルダとして作成されます。
 
-- `*_assemble-pass.fastq`（AssemblePairsのマージ結果）
-- `*_assemble-pass.fasta`（FASTA変換）
-- `AP_align.log`（AssemblePairsログ）
-- `*_trim_R1.fastq`, `*_trim_R2.fastq`（trim-merge時）
-- `*_mergeThenTrim.fastq`, `*_mergeThenTrim.fasta`（merge-trim時）
+例:
+
+```
+C:\path\KKF340_withoutTrim\
+C:\path\KKF340_trimThenMerge\
+C:\path\KKF340_mergeThenTrim\
+```
+
+モードにより以下のいずれかが作成されます（ファイル名にモード名が入ります）。
+
+- `*_<mode>_presto_assemble-pass.fastq`（AssemblePairsのマージ結果）
+- `*_<mode>_presto_assemble-pass.fasta`（FASTA変換）
+- `*_<mode>_AP_align.log`（AssemblePairsログ）
+- `*_<mode>_trim_R1.fastq`, `*_<mode>_trim_R2.fastq`（trim-merge時）
+- `*_<mode>.fastq`, `*_<mode>.fasta`（merge-trim時の最終出力）
 
 ## 固定配列（デフォルト）
 

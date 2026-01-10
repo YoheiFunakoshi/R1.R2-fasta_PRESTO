@@ -21,6 +21,12 @@ DEFAULT_ADAPTER_5P_R2 = "CTAATACGACTCCGAATTCC"
 DEFAULT_ADAPTER_3P_R1 = "GGAATTCGGAGTCGTATTAG"
 DEFAULT_ADAPTER_3P_R2 = "TGACGGTGTCGTGGAACTCA"
 
+MODE_LABELS = {
+    "merge-only": "withoutTrim",
+    "trim-merge": "trimThenMerge",
+    "merge-trim": "mergeThenTrim",
+}
+
 
 def infer_prefix(r1_path: Path) -> str:
     name = r1_path.name
@@ -34,6 +40,10 @@ def infer_prefix(r1_path: Path) -> str:
     if "_R1_" in name:
         return name.split("_R1_")[0]
     return name
+
+
+def mode_label(mode: str) -> str:
+    return MODE_LABELS.get(mode, mode)
 
 
 def png_chunk(tag: bytes, data: bytes) -> bytes:
@@ -200,7 +210,7 @@ class App(tk.Tk):
         )
         row += 1
 
-        ttk.Label(frame, text="Output folder").grid(row=row, column=0, sticky="w")
+        ttk.Label(frame, text="Output base folder").grid(row=row, column=0, sticky="w")
         ttk.Entry(frame, textvariable=self.var_outdir, width=60).grid(
             row=row, column=1, sticky="ew", padx=5
         )
@@ -380,6 +390,27 @@ class App(tk.Tk):
         if not self.var_prefix.get():
             self.var_prefix.set(infer_prefix(r1_path))
 
+    def _current_prefix_base(self) -> str:
+        prefix = self.var_prefix.get().strip()
+        if prefix:
+            return prefix
+        r1 = self.var_r1.get().strip()
+        if r1:
+            return infer_prefix(Path(r1))
+        return "sample"
+
+    def _current_run_dir(self) -> Path:
+        r1 = self.var_r1.get().strip()
+        outdir = self.var_outdir.get().strip()
+        if outdir:
+            base = Path(outdir)
+        elif r1:
+            base = Path(r1).parent
+        else:
+            base = Path.cwd()
+        run_name = f"{self._current_prefix_base()}_{mode_label(self.var_mode.get())}"
+        return base / run_name
+
     def _append_log(self, text: str) -> None:
         self.log_text.insert("end", text)
         self.log_text.see("end")
@@ -486,6 +517,7 @@ class App(tk.Tk):
         self.run_btn.configure(state="disabled")
         self.status_var.set("Running...")
         self._append_log("\n>> " + subprocess.list2cmdline(cmd) + "\n")
+        self._append_log(f">> output folder: {self._current_run_dir()}\n")
 
         def worker() -> None:
             try:
@@ -526,11 +558,15 @@ class App(tk.Tk):
         self.after(100, self._poll_queue)
 
     def _open_outdir(self) -> None:
-        outdir = self.var_outdir.get().strip()
-        if not outdir:
+        run_dir = self._current_run_dir()
+        if run_dir.exists():
+            os.startfile(run_dir)
+            return
+        base = self.var_outdir.get().strip()
+        if not base:
             messagebox.showinfo("Info", "Output folder is empty.")
             return
-        path = Path(outdir)
+        path = Path(base)
         if not path.exists():
             messagebox.showerror("Error", f"Output folder not found: {path}")
             return

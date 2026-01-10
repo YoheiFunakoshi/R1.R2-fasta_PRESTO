@@ -14,6 +14,12 @@ DEFAULT_ADAPTER_5P_R2 = "CTAATACGACTCCGAATTCC"
 DEFAULT_ADAPTER_3P_R1 = "GGAATTCGGAGTCGTATTAG"
 DEFAULT_ADAPTER_3P_R2 = "TGACGGTGTCGTGGAACTCA"
 
+MODE_LABELS = {
+    "merge-only": "withoutTrim",
+    "trim-merge": "trimThenMerge",
+    "merge-trim": "mergeThenTrim",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -128,6 +134,10 @@ def infer_prefix(r1_path: Path) -> str:
     if "_R1_" in name:
         return name.split("_R1_")[0]
     return name
+
+
+def mode_label(mode: str) -> str:
+    return MODE_LABELS.get(mode, mode)
 
 
 def ensure_prefix(seq: str, prefix: str) -> str:
@@ -321,12 +331,21 @@ def main() -> int:
         print(f"R2 not found: {r2}", file=sys.stderr)
         return 2
 
-    outdir = Path(args.outdir) if args.outdir else r1.parent
-    outdir.mkdir(parents=True, exist_ok=True)
+    base_outdir = Path(args.outdir) if args.outdir else r1.parent
+    base_outdir.mkdir(parents=True, exist_ok=True)
 
-    prefix = args.prefix or infer_prefix(r1)
-    assemble_prefix = args.assemble_prefix or f"{prefix}_presto"
-    log_path = Path(args.log) if args.log else outdir / "AP_align.log"
+    prefix_base = args.prefix or infer_prefix(r1)
+    run_name = f"{prefix_base}_{mode_label(args.mode)}"
+    run_dir = base_outdir / run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    assemble_prefix = args.assemble_prefix or f"{run_name}_presto"
+    if args.log:
+        log_path = Path(args.log)
+        if not log_path.is_absolute():
+            log_path = run_dir / log_path
+    else:
+        log_path = run_dir / f"{run_name}_AP_align.log"
 
     adapters = {
         "r1_5p": args.adapter_5p_r1,
@@ -335,9 +354,9 @@ def main() -> int:
         "r2_3p": args.adapter_3p_r2,
     }
 
-    trimmed_r1 = outdir / f"{prefix}_trim_R1.fastq"
-    trimmed_r2 = outdir / f"{prefix}_trim_R2.fastq"
-    merge_then_trim_fastq = outdir / f"{prefix}_mergeThenTrim.fastq"
+    trimmed_r1 = run_dir / f"{run_name}_trim_R1.fastq"
+    trimmed_r2 = run_dir / f"{run_name}_trim_R2.fastq"
+    merge_then_trim_fastq = run_dir / f"{run_name}.fastq"
 
     if args.mode == "trim-merge":
         run_cutadapt_paired(
@@ -367,10 +386,10 @@ def main() -> int:
         log_path=log_path,
         failed=args.failed,
         dry_run=args.dry_run,
-        outdir=outdir,
+        outdir=run_dir,
     )
 
-    assemble_pass = outdir / f"{assemble_prefix}_assemble-pass.fastq"
+    assemble_pass = run_dir / f"{assemble_prefix}_assemble-pass.fastq"
     if not args.dry_run and not assemble_pass.exists():
         print(f"AssemblePairs output not found: {assemble_pass}", file=sys.stderr)
         return 3
@@ -399,6 +418,7 @@ def main() -> int:
         fastq_to_fasta(fasta_source, fasta_out)
 
     print("Done.")
+    print(f"output folder: {run_dir}")
     print(f"merged fastq: {fasta_source}")
     print(f"fasta: {fasta_out}")
     print(f"log: {log_path}")
