@@ -286,6 +286,8 @@ def run_cutadapt_single(
 ) -> None:
     cmd = resolve_cutadapt_cmd()
     cmd += [
+        "--times",
+        "2",
         "-j",
         str(threads),
         "-g",

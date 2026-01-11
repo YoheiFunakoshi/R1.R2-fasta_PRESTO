@@ -137,6 +137,7 @@ C:\path\KKF340_mergeThenTrim_20260110_154200\
   基本は無視してOKです。もしアダプター残存が疑われる場合のみ、3'アダプターの5'側に
   1塩基追加して再実行してください。
 - cutadapt の「Indexing could take long」は速度/メモリの注意で、結果の正しさには影響しません。
+- merge-trim では 5' と 3' の両方を確実に落とすため、single-end の cutadapt に `--times 2` を使用します。
 
 ## 再現性のために残すもの（推奨）
 
