@@ -83,9 +83,26 @@ C:\miniforge3\Scripts\conda.exe run -p C:\miniforge3\envs\presto_env ^
   python bcr_merge_cli.py --mode merge-only --r1 C:\path\R1.fastq --r2 C:\path\R2.fastq
 ```
 
-## AssemblePairs parameters (advanced)
+## 設定（デフォルトと用途）
 
-Defaults (same as PRESTO):
+### cutadapt options（トリム用）
+
+※これらは「トリム用」のパラメータで、マージ条件ではありません。
+GUIの `cutadapt options` とCLIの `--cutadapt-*` が該当します。
+
+- threads: 8
+- error rate (-e): 0.15
+- overlap (-O): 10
+- minimum length: 50
+- merge-trim のみ: `--times 2`（5'と3'の両方を確実に落とすため）
+
+これらは同梱ドキュメント（KKF340）で使用している設定を基準にしています。
+一般的な初期値として妥当ですが、ライブラリ設計やリード長に合わせて調整可能です。
+
+### AssemblePairs options（マージ用）
+
+GUIの `AssemblePairs options` とCLIの `--assemble-*` が該当します。
+以下は **PRESTOのデフォルト値** で、一般的な初期値として妥当です。
 
 - alpha: 1e-5
 - maxerror: 0.3
@@ -93,7 +110,7 @@ Defaults (same as PRESTO):
 - maxlen: 1000
 - scanrev: off
 
-Change these only if PASS is too low or you need to match another lab's settings.
+PASSが少なすぎる場合や、他研究者の設定に合わせる必要がある場合のみ変更してください。
 
 ## 出力ファイルとフォルダ
 
