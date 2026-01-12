@@ -86,6 +86,35 @@ def parse_args() -> argparse.Namespace:
         help="cutadapt --minimum-length.",
     )
     parser.add_argument(
+        "--assemble-alpha",
+        type=float,
+        default=1e-5,
+        help="AssemblePairs --alpha (default: 1e-5).",
+    )
+    parser.add_argument(
+        "--assemble-maxerror",
+        type=float,
+        default=0.3,
+        help="AssemblePairs --maxerror (default: 0.3).",
+    )
+    parser.add_argument(
+        "--assemble-minlen",
+        type=int,
+        default=8,
+        help="AssemblePairs --minlen (default: 8).",
+    )
+    parser.add_argument(
+        "--assemble-maxlen",
+        type=int,
+        default=1000,
+        help="AssemblePairs --maxlen (default: 1000).",
+    )
+    parser.add_argument(
+        "--assemble-scanrev",
+        action="store_true",
+        help="AssemblePairs --scanrev (default: off).",
+    )
+    parser.add_argument(
         "--adapter-5p-r1",
         default=DEFAULT_ADAPTER_5P_R1,
         help="R1 5' adapter sequence (without '^').",
@@ -320,6 +349,11 @@ def run_assemblepairs(
     log_path: Path,
     failed: bool,
     swap_r1r2: bool,
+    assemble_alpha: float,
+    assemble_maxerror: float,
+    assemble_minlen: int,
+    assemble_maxlen: int,
+    assemble_scanrev: bool,
     dry_run: bool,
     outdir: Path,
 ) -> None:
@@ -338,6 +372,14 @@ def run_assemblepairs(
         coord,
         "--rc",
         rc,
+        "--alpha",
+        str(assemble_alpha),
+        "--maxerror",
+        str(assemble_maxerror),
+        "--minlen",
+        str(assemble_minlen),
+        "--maxlen",
+        str(assemble_maxlen),
         "--outname",
         outname,
         "--log",
@@ -345,6 +387,8 @@ def run_assemblepairs(
     ]
     if failed:
         cmd.append("--failed")
+    if assemble_scanrev:
+        cmd.append("--scanrev")
     run_command(cmd, dry_run=dry_run, cwd=outdir)
 
 
@@ -423,6 +467,11 @@ def main() -> int:
         log_path=log_path,
         failed=args.failed,
         swap_r1r2=args.swap_r1r2,
+        assemble_alpha=args.assemble_alpha,
+        assemble_maxerror=args.assemble_maxerror,
+        assemble_minlen=args.assemble_minlen,
+        assemble_maxlen=args.assemble_maxlen,
+        assemble_scanrev=args.assemble_scanrev,
         dry_run=args.dry_run,
         outdir=run_dir,
     )

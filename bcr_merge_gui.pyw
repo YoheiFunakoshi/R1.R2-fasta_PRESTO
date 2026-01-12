@@ -180,6 +180,11 @@ class App(tk.Tk):
         self.var_failed = tk.BooleanVar(value=False)
         self.var_dry_run = tk.BooleanVar(value=False)
         self.var_swap_r1r2 = tk.BooleanVar(value=False)
+        self.var_assemble_alpha = tk.StringVar(value="1e-5")
+        self.var_assemble_maxerror = tk.StringVar(value="0.3")
+        self.var_assemble_minlen = tk.StringVar(value="8")
+        self.var_assemble_maxlen = tk.StringVar(value="1000")
+        self.var_assemble_scanrev = tk.BooleanVar(value=False)
 
         default_use_conda = "presto_env" not in os.environ.get("CONDA_PREFIX", "")
         self.var_use_conda = tk.BooleanVar(value=default_use_conda)
@@ -290,6 +295,29 @@ class App(tk.Tk):
         ttk.Entry(opt_frame, textvariable=self.var_min_len, width=8).grid(
             row=0, column=7, sticky="w", padx=5
         )
+        row += 1
+
+        ap_frame = ttk.LabelFrame(frame, text="AssemblePairs options")
+        ap_frame.grid(row=row, column=0, columnspan=3, sticky="ew", pady=5)
+        ttk.Label(ap_frame, text="alpha").grid(row=0, column=0, sticky="w")
+        ttk.Entry(ap_frame, textvariable=self.var_assemble_alpha, width=10).grid(
+            row=0, column=1, sticky="w", padx=5
+        )
+        ttk.Label(ap_frame, text="maxerror").grid(row=0, column=2, sticky="w")
+        ttk.Entry(ap_frame, textvariable=self.var_assemble_maxerror, width=10).grid(
+            row=0, column=3, sticky="w", padx=5
+        )
+        ttk.Label(ap_frame, text="minlen").grid(row=0, column=4, sticky="w")
+        ttk.Entry(ap_frame, textvariable=self.var_assemble_minlen, width=8).grid(
+            row=0, column=5, sticky="w", padx=5
+        )
+        ttk.Label(ap_frame, text="maxlen").grid(row=0, column=6, sticky="w")
+        ttk.Entry(ap_frame, textvariable=self.var_assemble_maxlen, width=8).grid(
+            row=0, column=7, sticky="w", padx=5
+        )
+        ttk.Checkbutton(
+            ap_frame, text="scanrev", variable=self.var_assemble_scanrev
+        ).grid(row=0, column=8, sticky="w", padx=5)
         row += 1
 
         exec_frame = ttk.LabelFrame(frame, text="Execution")
@@ -465,6 +493,21 @@ class App(tk.Tk):
             "--run-id",
             run_id,
         ]
+
+        alpha = self.var_assemble_alpha.get().strip()
+        if alpha:
+            cmd += ["--assemble-alpha", alpha]
+        maxerror = self.var_assemble_maxerror.get().strip()
+        if maxerror:
+            cmd += ["--assemble-maxerror", maxerror]
+        minlen = self.var_assemble_minlen.get().strip()
+        if minlen:
+            cmd += ["--assemble-minlen", minlen]
+        maxlen = self.var_assemble_maxlen.get().strip()
+        if maxlen:
+            cmd += ["--assemble-maxlen", maxlen]
+        if self.var_assemble_scanrev.get():
+            cmd.append("--assemble-scanrev")
 
         prefix = self.var_prefix.get().strip()
         if prefix:

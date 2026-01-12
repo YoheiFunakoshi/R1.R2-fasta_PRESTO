@@ -83,6 +83,18 @@ C:\miniforge3\Scripts\conda.exe run -p C:\miniforge3\envs\presto_env ^
   python bcr_merge_cli.py --mode merge-only --r1 C:\path\R1.fastq --r2 C:\path\R2.fastq
 ```
 
+## AssemblePairs parameters (advanced)
+
+Defaults (same as PRESTO):
+
+- alpha: 1e-5
+- maxerror: 0.3
+- minlen: 8
+- maxlen: 1000
+- scanrev: off
+
+Change these only if PASS is too low or you need to match another lab's settings.
+
 ## 出力ファイルとフォルダ
 
 出力は `Output base folder` の下に、モード名と日時付きのサブフォルダとして作成されます。
